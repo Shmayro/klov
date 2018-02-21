@@ -29,6 +29,9 @@
 										<li class="nav-item">
 											<a class="nav-link block active" href="#" data-toggle="tab" data-target="#tab-2">Security</a>
 										</li>
+										<li class="nav-item">
+											<a class="nav-link block" href="/account/settings/params">Params</a>
+										</li>
 									</ul>
 								</div>
 							</div>
