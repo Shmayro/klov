@@ -43,6 +43,8 @@ public interface TestRepository<T, ID extends Serializable> extends MongoReposit
     
     List<Test> findByReportAndLevelAndStatus(@Param("report") ObjectId report, @Param("level") Integer level, @Param("status") String status); //
     
+    List<Test> findByReportAndLevelAndNameContaining(@Param("report") ObjectId report, @Param("level") Integer level,@Param("name") String feature); //
+    
     List<Test> findByProject(@Param("project") ObjectId project);
     
     List<Test> findByStartTimeGreaterThan(@Param("date") Date date);
