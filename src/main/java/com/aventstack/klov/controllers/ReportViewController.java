@@ -60,7 +60,7 @@ public class ReportViewController {
 		model.put("projectList", projectList);
 
 		Page<Report> reports = reportRepo.findByProjectOrderByStartTimeDesc(project, pageable);
-		
+
 		int pages = (int) Math.ceil(reportRepo.countByProject(project) / (double) (pageable.getPageSize()));
 		model.put("pages", pages);
 
@@ -77,45 +77,19 @@ public class ReportViewController {
 		List<String> features = Arrays.asList("Quick Sanity", "Aggregation", "Client Risk", "Dealer Intervention",
 				"Desk Collaboration", "Institutional Trading", "Internal Risk", "OMS", "Pricing", "Retail Trading",
 				"Sales Negotiation", "Voice Trading");
+		
 		Map<String, Map<String, Test>> stateByVersionByFeature = new HashMap<String, Map<String, Test>>();
 		for (String version : versions) {
 			if (!stateByVersionByFeature.containsKey(version)) {
 				stateByVersionByFeature.put(version, new HashMap<String, Test>());
 			}
 			for (String feature : features) {
-				boolean found = false;
-				int currentPage=0;
-				Page<Report> reportPages = reportRepo.findByProjectOrderByStartTimeDesc(project, new PageRequest(currentPage, 10));
-				List<Report> reportLs = reportPages.getContent();
-				while (!found) {
-					for (Report reportO : reportLs) {
-						if (reportO.getName().equals(version)) {
-							
-							if (!stateByVersionByFeature.get(version).containsKey(feature)) {
-								Test testO = testRepo.findFirstByReportAndLevelAndNameContainingOrderByEndTimeDesc(
-										new ObjectId(reportO.getId()), 0, feature);
-								if (testO != null) {
-									stateByVersionByFeature.get(version).put(feature, testO);
-									found = true;
-									break;
-								}
-							}else {
-								found=true;
-								break;
-							}
-						}
-					}
-					if (currentPage<pages && !found) {
-						currentPage++;
-						reportPages = reportRepo.findByProjectOrderByStartTimeDesc(project, new PageRequest(currentPage, 10));
-						reportLs = reportPages.getContent();
-					}else if(!found) {
-						stateByVersionByFeature.get(version).put(feature, null);
-						break;
-					}
-				}
+				stateByVersionByFeature.get(version).put(feature, testRepo
+						.findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(version, 0, feature));
+
 			}
 		}
+
 		model.put("versions", versions);
 		model.put("features", features);
 		model.put("stateByVersionByFeature", stateByVersionByFeature);
@@ -126,6 +100,7 @@ public class ReportViewController {
 		model.put("user", session.getAttribute("user"));
 
 		return "builds";
+
 	}
 
 	@GetMapping("/build")

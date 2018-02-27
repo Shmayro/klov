@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
+import com.aventstack.klov.domain.Category;
 import com.aventstack.klov.domain.Test;
 import com.aventstack.klov.repository.custom.TestRepositoryCustom;
 
@@ -49,6 +50,8 @@ public interface TestRepository<T, ID extends Serializable> extends MongoReposit
     List<Test> findByReportAndLevelAndNameContaining(@Param("report") ObjectId report, @Param("level") Integer level,@Param("name") String feature); //
     
     Test findFirstByReportAndLevelAndNameContainingOrderByEndTimeDesc(@Param("report") ObjectId report, @Param("level") Integer level,@Param("name") String feature); //
+    
+    Test findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(@Param("categoryName") String categoryName, @Param("level") Integer level,@Param("name") String feature); //
     
     List<Test> findByProject(@Param("project") ObjectId project);
     
