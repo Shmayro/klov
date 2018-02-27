@@ -94,57 +94,55 @@
                     <!-- ############ PAGE START-->
                     <div class="padding">
 						<div class="row">
-							<div class="col-12">
-							<div class="box">
-								<div class="box-header">
-									<span class="label success pull-right">0</span>
-									<h3>Last Reports Summary</h3>
-								</div>
-								<div class="box-body">
-									<table class="table">
-    									<thead>
-        									<tr>
-        										<th>#</th>
-        										<#list versions as version>
-            										<th>${version}</th>
-            									</#list>
-        									</tr>
-    									</thead>
-    									<tbody>
-    										<#list features as feature>
-        										<tr>
-        											<td>${feature}</td>
-													<#list versions as version>
-														<td>
-																<#if !stateByVersionByFeature[version][feature]??>
-																	<span class="label">not found</span>
-																<#elseif stateByVersionByFeature[version][feature]>
-																	<span class="label green">pass</span>
-																	<a alt="View all tests" title="View all tests" href="#">
-	                                                					<button class="btn btn-icon white"><i class="material-icons">input</i></button>
-	                                                				</a>
-	                                                				<a alt="View failed tests" title="View failed tests" href="#">
-	                                                					<button class="btn btn-icon white"><i class="material-icons">report</i></button>
-	                                               	 				</a>
-																<#else>
-																	<span class="label red">fail</span>
-																	<a alt="View all tests" title="View all tests" href="#">
-	                                                					<button class="btn btn-icon white"><i class="material-icons">input</i></button>
-	                                                				</a>
-	                                                				<a alt="View failed tests" title="View failed tests" href="#">
-	                                                					<button class="btn btn-icon white"><i class="material-icons">report</i></button>
-	                                               	 				</a>
-																</#if>
-														</td>
-													</#list>
-        										</tr>
-        									</#list>
-    									</tbody>
-									</table>
-								</div>
-							</div>
-							</div>
-						</div>
+                            <div class="col-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <span class="label success pull-right">0</span>
+                                    <h3>Last Reports Summary</h3>
+                                </div>
+                                <div class="box-body">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <#list versions as version>
+                                                    <th>${version}</th>
+                                                </#list>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <#list features as feature>
+                                                <tr>
+                                                    <td>${feature}</td>
+                                                    <#list versions as version>
+                                                        <td>
+                                                                <#if !stateByVersionByFeature[version][feature]??>
+                                                                    <span class="label">not found</span>
+                                                                <#else>
+
+                                                                    <#if stateByVersionByFeature[version][feature].status == 'pass'>
+                                                                        <span class="label green">pass</span>
+                                                                        <#elseif stateByVersionByFeature[version][feature].status == 'fail'>
+                                                                        <span class="label red">fail</span>
+                                                                    </#if>
+                                                                    
+                                                                    <small title="${stateByVersionByFeature[version][feature].startTime?datetime}">${prettyTime.format(stateByVersionByFeature[version][feature].startTime)}</small>
+                                                                    
+                                                                    <a alt="View all tests" title="View Test" href="/test?id=${stateByVersionByFeature[version][feature].id}">
+                                                                        <span class="label  white"><i class="material-icons">input</i></span>
+                                                                    </a>
+                                                                    
+                                                                </#if>
+                                                        </td>
+                                                    </#list>
+                                                </tr>
+                                            </#list>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
 
                         <div class="row m-b">
                             <#list reportList as report> <#if (report.name)?? && (report.parentLength)??>

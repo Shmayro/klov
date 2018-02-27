@@ -5,7 +5,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -44,6 +47,8 @@ public interface TestRepository<T, ID extends Serializable> extends MongoReposit
     List<Test> findByReportAndLevelAndStatus(@Param("report") ObjectId report, @Param("level") Integer level, @Param("status") String status); //
     
     List<Test> findByReportAndLevelAndNameContaining(@Param("report") ObjectId report, @Param("level") Integer level,@Param("name") String feature); //
+    
+    Test findFirstByReportAndLevelAndNameContainingOrderByEndTimeDesc(@Param("report") ObjectId report, @Param("level") Integer level,@Param("name") String feature); //
     
     List<Test> findByProject(@Param("project") ObjectId project);
     

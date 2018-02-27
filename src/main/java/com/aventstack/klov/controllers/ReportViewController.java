@@ -13,7 +13,9 @@ import org.ocpsoft.prettytime.PrettyTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,6 +60,7 @@ public class ReportViewController {
 		model.put("projectList", projectList);
 
 		Page<Report> reports = reportRepo.findByProjectOrderByStartTimeDesc(project, pageable);
+		
 		int pages = (int) Math.ceil(reportRepo.countByProject(project) / (double) (pageable.getPageSize()));
 		model.put("pages", pages);
 
@@ -71,43 +74,44 @@ public class ReportViewController {
 
 		// To generate my list
 		List<String> versions = Arrays.asList("3.5.18.0", "3.6.19.0", "3.7.20.0");
-		List<String> features = Arrays.asList("Quick Sanity","Aggregation", "Client Risk", "Dealer Intervention", "Desk Collaboration","Institutional Trading", "Internal Risk","OMS","Pricing","Retail Trading","Sales Negotiation","Voice Trading");
-		Map<String, Map<String, Boolean>> stateByVersionByFeature = new HashMap<String, Map<String, Boolean>>();
+		List<String> features = Arrays.asList("Quick Sanity", "Aggregation", "Client Risk", "Dealer Intervention",
+				"Desk Collaboration", "Institutional Trading", "Internal Risk", "OMS", "Pricing", "Retail Trading",
+				"Sales Negotiation", "Voice Trading");
+		Map<String, Map<String, Test>> stateByVersionByFeature = new HashMap<String, Map<String, Test>>();
 		for (String version : versions) {
 			if (!stateByVersionByFeature.containsKey(version)) {
-				stateByVersionByFeature.put(version, new HashMap<String, Boolean>());
+				stateByVersionByFeature.put(version, new HashMap<String, Test>());
 			}
-			for (Report reportO : reportList) {
-				if (reportO.getName().equals(version)) {
-					// Check if module Have One of all the features
-					for (String feature : features) {
-						if (!stateByVersionByFeature.get(version).containsKey(feature)) {
-							stateByVersionByFeature.get(version).put(feature,null);
-						}
-						if (stateByVersionByFeature.get(version).get(feature)==null) {
-							int passCount = 0;
-							int failCount = 0;
-							for (Test testO : testRepo
-									.findByReportAndLevelAndNameContaining(new ObjectId(reportO.getId()), 0, feature)) {
-								switch (testO.getStatus()) {
-								case "pass":
-									passCount++;
-									break;
-								case "fail":
-									failCount++;
-									break;
-								default:
+			for (String feature : features) {
+				boolean found = false;
+				int currentPage=0;
+				Page<Report> reportPages = reportRepo.findByProjectOrderByStartTimeDesc(project, new PageRequest(currentPage, 10));
+				List<Report> reportLs = reportPages.getContent();
+				while (!found) {
+					for (Report reportO : reportLs) {
+						if (reportO.getName().equals(version)) {
+							
+							if (!stateByVersionByFeature.get(version).containsKey(feature)) {
+								Test testO = testRepo.findFirstByReportAndLevelAndNameContainingOrderByEndTimeDesc(
+										new ObjectId(reportO.getId()), 0, feature);
+								if (testO != null) {
+									stateByVersionByFeature.get(version).put(feature, testO);
+									found = true;
 									break;
 								}
-							}
-							if (passCount > 0 && failCount == 0) {
-								stateByVersionByFeature.get(version).put(feature, true);
-							} else if (failCount > 0) {
-								stateByVersionByFeature.get(version).put(feature, false);
-							} else if (passCount == 0 && failCount == 0) {
-								stateByVersionByFeature.get(version).put(feature, null);
+							}else {
+								found=true;
+								break;
 							}
 						}
+					}
+					if (currentPage<pages && !found) {
+						currentPage++;
+						reportPages = reportRepo.findByProjectOrderByStartTimeDesc(project, new PageRequest(currentPage, 10));
+						reportLs = reportPages.getContent();
+					}else if(!found) {
+						stateByVersionByFeature.get(version).put(feature, null);
+						break;
 					}
 				}
 			}
