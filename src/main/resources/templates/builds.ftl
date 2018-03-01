@@ -128,8 +128,8 @@
                                                                     
                                                                     <small title="${stateByVersionByFeature[version][feature].startTime?datetime}">${prettyTime.format(stateByVersionByFeature[version][feature].startTime)}</small>
                                                                     
-                                                                    <a alt="View all tests" title="View Test" href="/test?id=${stateByVersionByFeature[version][feature].id}">
-                                                                        <span class="label  white"><i class="material-icons">input</i></span>
+                                                                    <a alt="View all tests" title="View Test" target="_blank" href="/test?id=${stateByVersionByFeature[version][feature].id}">
+                                                                        <i class="fa fa-external-link"></i>
                                                                     </a>
                                                                     
                                                                 </#if>
