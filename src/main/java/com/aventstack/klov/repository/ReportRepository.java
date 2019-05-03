@@ -32,5 +32,7 @@ public interface ReportRepository<T, ID extends Serializable> extends MongoRepos
     List<Report> findByStartTimeGreaterThan(@Param("date") Date date);
     
     List<Report> findByCategoryNameList(@Param("name") String name);
+    
+    Report findFirstByNameStartingWithOrderByEndTimeDesc(@Param("categoryName") String version); //
 
 }

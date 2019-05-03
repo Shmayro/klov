@@ -1,5 +1,6 @@
 package com.aventstack.klov.controllers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +74,12 @@ public class ReportViewController {
 		}
 
 		// To generate my list
-		List<String> versions = Arrays.asList("3.5.18.0", "3.6.19.0", "3.7.20.0");
+		List<String> versionsPart = Arrays.asList("3.5", "3.8", "4.2","4.5","4.8","4.13");
+		List<String> versions = new ArrayList<String>();
+		for(String v:versionsPart) {
+			versions.add(reportRepo.findFirstByNameStartingWithOrderByEndTimeDesc(v).getName());
+		}
+		
 		List<String> features = Arrays.asList("Quick Sanity", "Aggregation", "Client Risk", "Dealer Intervention",
 				"Desk Collaboration", "Institutional Trading", "Internal Risk", "OMS", "Pricing", "Retail Trading",
 				"Sales Negotiation", "Voice Trading");
@@ -85,7 +91,7 @@ public class ReportViewController {
 			}
 			for (String feature : features) {
 				stateByVersionByFeature.get(version).put(feature, testRepo
-						.findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(version, 0, feature));
+						.findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(version, 0, feature.replace(" ", "")));
 
 			}
 		}
