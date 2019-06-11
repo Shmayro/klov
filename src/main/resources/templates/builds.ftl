@@ -113,22 +113,22 @@
                                         <tbody>
                                             <#list features as feature>
                                                 <tr>
-                                                    <td>${feature}</td>
+                                                    <td>${feature.getTitle()}</td>
                                                     <#list versions as version>
                                                         <td>
-                                                                <#if !stateByVersionByFeature[version][feature]??>
+                                                                <#if !stateByVersionByFeature[version][feature.getQueryName()]??>
                                                                     <span class="label">not found</span>
                                                                 <#else>
 
-                                                                    <#if stateByVersionByFeature[version][feature].status == 'pass'>
+                                                                    <#if stateByVersionByFeature[version][feature.getQueryName()].status == 'pass'>
                                                                         <span class="label green">pass</span>
-                                                                        <#elseif stateByVersionByFeature[version][feature].status == 'fail'>
+                                                                        <#elseif stateByVersionByFeature[version][feature.getQueryName()].status == 'fail'>
                                                                         <span class="label red">fail</span>
                                                                     </#if>
                                                                     
-                                                                    <small title="${stateByVersionByFeature[version][feature].startTime?datetime}">${prettyTime.format(stateByVersionByFeature[version][feature].startTime)}</small>
+                                                                    <small title="${stateByVersionByFeature[version][feature.getQueryName()].endTime?datetime}">${prettyTime.format(stateByVersionByFeature[version][feature.getQueryName()].endTime)}</small>
                                                                     
-                                                                    <a alt="View all tests" title="View Test" target="_blank" href="/test?id=${stateByVersionByFeature[version][feature].id}">
+                                                                    <a alt="View all tests" title="View Test" target="_blank" href="/test?id=${stateByVersionByFeature[version][feature.getQueryName()].id}">
                                                                         <i class="fa fa-external-link"></i>
                                                                     </a>
                                                                     
