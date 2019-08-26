@@ -3,11 +3,38 @@
 	<#include 'partials/head.ftl'>
 	<style>
 		.border-box > h6 {
-			margin-bottom: 20px;
+			margin-bottom: 0px;
 		}
 		.border-box {
-		    border: 1px solid rgba(120,130,140,.2);
+		    border: 1px solid rgba(120,130,140,.7);
+		    border-left: 2px solid rgba(120,130,140,.7);
 		    border-radius: .25rem;
+		    background-color: rgba(120,130,140,.2);
+		}
+		.border-box[status='fail'], .border-box[status='fatal'] {
+			border: 1px solid #ff9a9a;
+			border-left: 2px solid #ff9a9a;
+			background-color: #ff9a9a20;
+		}
+		.border-box[status='skip'], .border-box[status='warning'] {
+			border: 1px solid #fffbdd;
+			border-left: 2px solid #fffbdd;
+			background-color: #fffbdd20;
+		}
+		.border-box[status='error'] {
+			border: 1px solid rgba(227, 180, 208, .7);
+			border-left: 2px solid rgba(227, 180, 208, .7);
+			background-color: rgba(227, 180, 208, .2);
+		}
+		.border-box[status='warning'] {
+			border: 1px solid #fffbdd;
+			border-left: 2px solid #fffbdd;
+			background-color: #fffbdd20;
+		}
+		.border-box[status='pass'] {
+			border: 1px solid #b5d6a7;
+			border-left: 2px solid #b5d6a7;
+			background-color: #b5d6a720;
 		}
 		.node.pass {
 			background-color: #aed581;
@@ -32,6 +59,17 @@
 		}
 		.sl-item {
 			padding-top: 10px;		
+		}
+		pre, .code-block {
+    		background-color: #f8f9fa;
+    		border: 1px solid #ebedef;
+    		border-radius: 4px;
+    		color: #222 !important;
+    		font-family: Consolas,monospace;
+    		font-size: 13px;
+    		margin: 0;
+    		padding: 7px 10px;
+    		white-space: pre-wrap;
 		}
 	</style>
 	<body>
@@ -83,6 +121,9 @@
 																</div>
 																<div class="item-title" ng-click="findTest('${t.id}', false, false)">
 																	<a href="#" class="_500">${t.startTime?datetime}</a>
+																</div>
+																<div class="pull-right">
+																	<span class="label blue-grey"><i class="fa fa-clock-o"></i> <#if (t.duration)??>${t.duration?number_to_time?iso_utc?time?string["H'h 'mm'm 'ss's+'sss'ms'"]}<#else>0ms</#if></span>
 																</div>
 																<small class="block text-ellipsis">
 																<span class="text-xs">
@@ -140,8 +181,11 @@
 														<span class="label teal">{{currentTest.startTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label brown">{{currentTest.endTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label {{getColor(currentTest.status)}}">{{currentTest.status}}</span>
+														<div ng-if="currentTest.categorized">
+															<span class="label blue-grey" ng-repeat="category in currentTest.categoryNameList"><i class="fa fa-tag"></i> &nbsp; {{category}}</span>
+														</div>
 														
-														<br/><br/>
+														<br/>
 														
 														<!-- parent nodes -->
 														<div class="bdd-node" ng-if="currentTest.nodes.length">
@@ -212,7 +256,10 @@
 														<span class="label teal">{{currentTest.startTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label brown">{{currentTest.endTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label {{getColor(currentTest.status)}}">{{currentTest.status}}</span>
-														
+														<div class="pull-right">
+															<span ng-if="currentTest.categorized" class="label blue-grey" ng-repeat="category in currentTest.categoryNameList"><i class="fa fa-tag"></i> &nbsp; {{category}}</span>
+															<span class="label blue"><i class="fa fa-clock-o"></i> {{currentTest.duration | date: "H'h 'mm'm 'ss's+'sss'ms'" : "UTC"}}</span>
+														</div>
 														<br/>
 														<br/>
 														
@@ -240,12 +287,23 @@
 														<!-- parent nodes -->
 														<div class="" ng-if="currentTest.nodes.length">
 															<!-- node1 -->
-															<div class="p-a box border-box light" ng-repeat="node1 in currentTest.nodes">
-																<span class="label {{getColor(node1.status)}} pull-right">{{node1.status}}</span>
-																<h6 class="_600">{{node1.name}}</h6>
+															<div class="p-a box border-box light" ng-repeat="(keyNode1,node1) in currentTest.nodes" status="{{node1.status}}" >
+																<span class="pull-right lh-zero">
+																	<span class="label blue-grey"><i class="fa fa-clock-o"></i>  {{node1.duration | date: "ss's+'sss'ms'" : "UTC"}}</span>
+																	<span class="label {{getColor(node1.status)}}">{{node1.status}}</span>
+																</span>
+																<h6 class="_600" data-toggle="collapse" href="#log1{{keyNode1}}" role="button" aria-expanded="false" aria-controls="log1{{keyNode1}}"><i class="fa fa-chevron-down"></i> {{node1.name}}</h6>
+																
+																<div id="screens1{{keyNode1}}" ng-if="node1.logs">
+																	<div ng-repeat-start="log in node1.logs" ng-if="false"></div>
+																		<pre ng-if="log.details.length>100" >{{getErrorResume(log.details)}}</pre>
+																		<div ng-if="log.details.length>100" ng-bind-html="trust(getErrorScreen(log.details))"></div>
+																	<div ng-repeat-end ng-if="false"></div>
+																</div>
 																
 																<!-- node1 logs -->
-																<div class="streamline" ng-if="node1.logs">
+																<div class="streamline collapse" ng-if="node1.logs" id="log1{{keyNode1}}" aria-expanded="false">
+																	<hr/>
 															        <div ng-repeat="log in node1.logs" class="sl-item b-{{getBootstrapColor(log.status)}}">
 															          <div class="sl-icon">
 															            <i class="fa fa-{{getFont(log.status)}}"></i>
@@ -269,12 +327,23 @@
 																<!-- node1 nodes -->
 																<div class="p-a" ng-if="node1.nodes.length">
 																	<!-- nodes -->
-																	<div ng-repeat="node2 in node1.nodes">
-																		<span class="label {{getColor(node2.status)}} pull-right">{{node2.status}}</span>
-																		<h6 class="_600">{{node2.name}}</h6>
+																	<div ng-repeat="(keyNode2,node2) in node1.nodes"  status="{{node1.status}}" >
+																		<span class="pull-right lh-zero">
+																			<span class="label blue-grey"><i class="fa fa-clock-o"></i>  {{node2.duration | date: "ss's+'sss'ms'" : "UTC"}}</span>
+																			<span class="label {{getColor(node2.status)}}">{{node2.status}}</span>
+																		</span>
+																		<h6 class="_600" data-toggle="collapse" href="#log2{{keyNode2}}" role="button" aria-expanded="false" aria-controls="log2{{keyNode2}}"><i class="fa fa-chevron-down"></i> {{node2.name}}</h6>
+																		
+																		<div id="screens2{{keyNode2}}" ng-if="node2.logs">
+																			<div ng-repeat-start="log in node2.logs" ng-if="false"></div>
+																			<pre ng-if="log.details.length>100" >{{getErrorResume(log.details)}}</pre>
+																			<div ng-if="log.details.length>100" ng-bind-html="trust(getErrorScreen(log.details))"></div>
+																			<div ng-repeat-end ng-if="false"></div>
+																		</div>
 																		
 																		<!-- node2 logs -->
-																		<div class="streamline" ng-if="node2.logs">
+																		<div class="streamline collapse" ng-if="node2.logs" id="log1{{keyNode2}}" aria-expanded="false">
+																			<hr/>
 																	        <div ng-repeat="log in node2.logs" class="sl-item b-{{getBootstrapColor(log.status)}}">
 																	          <div class="sl-icon">
 																	            <i class="fa fa-{{getFont(log.status)}}"></i>
@@ -350,8 +419,12 @@
 														<span class="label teal">{{historicalTest.startTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label brown">{{historicalTest.endTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label {{getColor(historicalTest.status)}}">{{historicalTest.status}}</span>
-														
-														<br/><br/>
+														<div class="pull-right">
+															<span ng-if="historicalTest.categorized" class="label blue-grey" ng-repeat="category in historicalTest.categoryNameList"><i class="fa fa-tag"></i> &nbsp; {{category}}</span>
+															<span class="label blue"><i class="fa fa-clock-o"></i> {{historicalTest.duration | date: "H'h 'mm'm 'ss's+'sss'ms'" : "UTC"}}</span>
+														</div>
+														<br/>
+														<br/>
 														
 														<!-- parent nodes -->
 														<div class="bdd-node" ng-if="historicalTest.nodes.length">
@@ -422,8 +495,12 @@
 														<span class="label teal">{{historicalTest.startTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label brown">{{historicalTest.endTime | date: 'MMM dd, yyyy hh:mm:ss'}}</span>
 														<span class="label {{getColor(historicalTest.status)}}">{{historicalTest.status}}</span>
-														
-														<br/><br/>
+														<div class="pull-right">
+															<span ng-if="historicalTest.categorized" class="label blue-grey" ng-repeat="category in historicalTest.categoryNameList"><i class="fa fa-tag"></i> &nbsp; {{category}}</span>
+															<span class="label blue"><i class="fa fa-clock-o"></i> {{historicalTest.duration | date: "H'h 'mm'm 'ss's+'sss'ms'" : "UTC"}}</span>
+														</div>
+														<br/>
+														<br/>
 														
 														<div class="streamline" ng-if="historicalTest.logs">
 													        <div ng-repeat="log in historicalTest.logs" class="sl-item b-{{getBootstrapColor(log.status)}}">
@@ -449,12 +526,23 @@
 														<!-- parent nodes -->
 														<div class="" ng-if="historicalTest.nodes.length">
 															<!-- nodeH1 -->
-															<div class="p-a box border-box" ng-repeat="nodeH1 in historicalTest.nodes">
-																<span class="label {{getColor(nodeH1.status)}} pull-right">{{nodeH1.status}}</span>
-																<h6 class="_600">{{nodeH1.name}}</h6>
+															<div class="p-a box border-box" ng-repeat="(keyNodeH1,nodeH1) in historicalTest.nodes" status="{{nodeH1.status}}">
+																<span class="pull-right lh-zero">
+																	<span class="label blue-grey"><i class="fa fa-clock-o"></i>  {{nodeH1.duration | date: "ss's+'sss'ms'" : "UTC"}}</span>
+																	<span class="label {{getColor(nodeH1.status)}}">{{nodeH1.status}}</span>
+																</span>
+																<h6 class="_600" data-toggle="collapse" href="#logH1{{keyNodeH1}}" role="button" aria-expanded="false" aria-controls="logH1{{keyNodeH1}}"><i class="fa fa-chevron-down"></i> {{nodeH1.name}}</h6>
+																
+																<div id="screens1{{keyNodeH1}}" ng-if="nodeH1.logs">
+																	<div ng-repeat-start="log in nodeH1.logs" ng-if="false"></div>
+																	<pre ng-if="log.details.length>100" >{{getErrorResume(log.details)}}</pre>
+																	<div ng-if="log.details.length>100" ng-bind-html="trust(getErrorScreen(log.details))"></div>
+																	<div ng-repeat-end ng-if="false"></div>
+																</div>
 																
 																<!-- nodeH1 logs -->
-																<div class="streamline" ng-if="nodeH1.logs">
+																<div class="streamline collapse" ng-if="nodeH1.logs"  id="logH1{{keyNodeH1}}" aria-expanded="false">
+																	<hr/>
 															        <div ng-repeat="log in nodeH1.logs" class="sl-item b-{{getBootstrapColor(log.status)}}">
 															          <div class="sl-icon">
 															            <i class="fa fa-{{getFont(log.status)}}"></i>
@@ -478,12 +566,12 @@
 																<!-- nodeH1 nodes -->
 																<div class="p-a" ng-if="nodeH1.nodes.length">
 																	<!-- nodes -->
-																	<div ng-repeat="nodeH2 in nodeH1.nodes">
+																	<div ng-repeat="(keyNodeH2,nodeH2) in nodeH1.nodes">
 																		<span class="label {{getColor(nodeH2.status)}} pull-right">{{nodeH2.status}}</span>
-																		<h6 class="_600">{{nodeH2.name}}</h6>
+																		<h6 class="_600" data-toggle="collapse" href="#logH2{{keyNodeH2}}" role="button" aria-expanded="false" aria-controls="logH2{{keyNodeH2}}"><i class="fa fa-chevron-down"></i> {{nodeH2.name}}</h6>
 																		
 																		<!-- nodeH2 logs -->
-																		<div class="streamline" ng-if="nodeH2.logs">
+																		<div class="streamline collapse" ng-if="nodeH2.logs"  id="logH2{{keyNodeH2}}" aria-expanded="false">
 																	        <div ng-repeat="log in nodeH2.logs" class="sl-item b-{{getBootstrapColor(log.status)}}">
 																	          <div class="sl-icon">
 																	            <i class="fa fa-{{getFont(log.status)}}"></i>
@@ -529,6 +617,10 @@
 		
 		<script>
 			$(document).ready(function () {
+				$("#detail").hide();
+				$("#list").removeClass("col-xs-4");
+				$("#list").addClass("col-xs-8");
+				
 				$(".lhs, .rhs").fadeOut();
 				
 				$("#subnav").hover(function() {
@@ -544,6 +636,9 @@
 				$(".rhs").click(function() {
 					$(".rhs").removeClass("warn");
 					$(this).addClass("warn");
+					$('#detail').show();
+					$("#list").removeClass("col-xs-8");
+					$("#list").addClass("col-xs-4");
 				})
 			});
 		</script>

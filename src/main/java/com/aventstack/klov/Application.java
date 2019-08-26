@@ -2,6 +2,8 @@ package com.aventstack.klov;
 
 import java.io.IOException;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +20,10 @@ import com.aventstack.klov.domain.KlovDocument;
 import com.aventstack.klov.domain.User;
 import com.aventstack.klov.repository.ReportRepository;
 import com.aventstack.klov.repository.UserRepository;
+import com.aventstack.klov.repository.custom.TestRepositoryCustom;
 import com.aventstack.klov.storage.StorageProperties;
 import com.aventstack.klov.storage.StorageService;
+import com.aventstack.klov.utils.Utils;
 
 @SpringBootApplication //(exclude = {SessionAutoConfiguration.class})
 @ComponentScan(basePackageClasses = {
@@ -35,6 +39,9 @@ public class Application {
     
     @Autowired
     private UserRepository<User, String> userRepository;
+    
+    @Autowired
+    private TestRepositoryCustom testRepository;
     
     @Value("${server.admin.name}")
     private String adminName;
@@ -52,6 +59,11 @@ public class Application {
                 userRepository.save(new User(adminName, adminKey, true));
             }
         };
+    }
+    
+    @PostConstruct
+    public void init() {
+        Utils.setTestRepository(testRepository);
     }
     
     /*

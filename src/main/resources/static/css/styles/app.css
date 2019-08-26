@@ -83,6 +83,9 @@ sup {
 
 .pull-right {
   float: right; }
+  
+.lh-zero {
+  line-height: 0; }
 
 .center-block {
   margin: 0 auto; }

@@ -13,7 +13,15 @@
                         <span class="text-xs">Main</span>
                     </li>
                     <li>
-                        <a href="/builds" class="no-ajax" alt="Builds" title="Builds">
+                        <a href="/lastReports" class="no-ajax" alt="Dashboard" title="Dashboard">
+                        <span class="nav-icon no-fade">
+                        <i class="material-icons">assessment</i>
+                        </span>
+                        <span class="nav-text">Last Reports Summary</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/tests" class="no-ajax" alt="Tests" title="Tests">
                         <span class="nav-icon no-fade">
                         <i class="material-icons">dns</i>
                         </span>

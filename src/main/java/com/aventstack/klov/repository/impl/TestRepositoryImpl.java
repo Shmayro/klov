@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.aventstack.klov.domain.AggregationCount;
@@ -50,6 +51,7 @@ public class TestRepositoryImpl implements TestRepositoryCustom {
         Test test = findOne(id);
         Query query = new Query(Criteria.where("name").is(test.getName()).and("_id").ne(id))
                 .with(new Sort(Sort.Direction.DESC, "startTime"));
+        query.addCriteria(Criteria.where("categoryNameList").is(test.getCategoryNameList()));
         List<Test> list = mongoTemplate.find(query, Test.class);
         return list;
     }
@@ -127,7 +129,7 @@ public class TestRepositoryImpl implements TestRepositoryCustom {
         
         return mongoTemplate.find(query, Test.class);
     }
-    
+
     @Override
     public List<AggregationCount> findByNameByProjectByTopFailed(Optional<Project> project) {
         Criteria c = Criteria.where("name").ne(null).and("status").is("fail");
@@ -173,12 +175,28 @@ public class TestRepositoryImpl implements TestRepositoryCustom {
     
     @Override
     public Long countByProject(Optional<Project> project) {
-        Query query = new Query(Criteria.where("leaf").is(true));
+    	Query query = new Query(Criteria.where("leaf").is(true));
         if (project.isPresent())
             query.addCriteria(Criteria.where("project").is(new ObjectId(project.get().getId())));
         
         return mongoTemplate.count(query, Test.class);
     }
+
+	@Override
+	public Long countByLevelByCategoryByName(Optional<Integer> level, Optional<String> category,
+			Optional<String> name) {
+		Query query = new Query();
+        if (level.isPresent())
+            query.addCriteria(Criteria.where("level").is(level.get()));
+        
+        if (category.isPresent())
+            query.addCriteria(Criteria.where("categoryNameList").in(category.get()));
+        
+        if (name.isPresent())
+            query.addCriteria(Criteria.where("name").regex(name.get()));
+        
+        return mongoTemplate.count(query, Test.class);
+	}
     
     
 

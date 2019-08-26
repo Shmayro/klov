@@ -93,132 +93,92 @@
                 <div class="app-body">
                     <!-- ############ PAGE START-->
                     <div class="padding">
-						<div class="row">
-                            <div class="col-12">
-                            <div class="box">
-                                <div class="box-header">
-                                    <span class="label success pull-right">0</span>
-                                    <h3>Last Reports Summary</h3>
-                                </div>
-                                <div class="box-body">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <#list versions as version>
-                                                    <th>${version}</th>
-                                                </#list>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <#list features as feature>
-                                                <tr>
-                                                    <td>${feature.getTitle()}</td>
-                                                    <#list versions as version>
-                                                        <td>
-                                                                <#if !stateByVersionByFeature[version][feature.getQueryName()]??>
-                                                                    <span class="label">not found</span>
-                                                                <#else>
-
-                                                                    <#if stateByVersionByFeature[version][feature.getQueryName()].status == 'pass'>
-                                                                        <span class="label green">pass</span>
-                                                                        <#elseif stateByVersionByFeature[version][feature.getQueryName()].status == 'fail'>
-                                                                        <span class="label red">fail</span>
-                                                                    </#if>
-                                                                    
-                                                                    <small title="${stateByVersionByFeature[version][feature.getQueryName()].endTime?datetime}">${prettyTime.format(stateByVersionByFeature[version][feature.getQueryName()].endTime)}</small>
-                                                                    
-                                                                    <a alt="View all tests" title="View Test" target="_blank" href="/test?id=${stateByVersionByFeature[version][feature.getQueryName()].id}">
-                                                                        <i class="fa fa-external-link"></i>
-                                                                    </a>
-                                                                    
-                                                                </#if>
-                                                        </td>
-                                                    </#list>
-                                                </tr>
-                                            </#list>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-
-                        <div class="row m-b">
-                            <#list reportList as report> <#if (report.name)?? && (report.parentLength)??>
-	                            <#if report.parentLength != 0>
-		                            <#assign featurePassed=Math.round((report.passParentLength/report.parentLength)*100)>
-		                            <#assign featureFailed=Math.round(((report.failParentLength+report.fatalParentLength+report.errorParentLength)/report.parentLength)*100)>
-		                            <#assign featureOthers=Math.round(((report.skipParentLength+report.warningParentLength)/report.parentLength)*100)>
-		                            <#assign featureScore=Math.round((report.passParentLength/report.parentLength)*100)>
-	                            </#if>
-	                            <#if report.childLength != 0> 
-	                            	<#assign scenarioScore=Math.round((report.passChildLength/report.childLength)*100)> 
-	                            </#if>
-	                            <#if report.grandChildLength != 0> 
-	                            	<#assign stepScore=Math.round((report.passGrandChildLength/report.grandChildLength)*100)> 
-	                            </#if>
-	                            
-	                            <div class="col-sm-4" ng-if="!r${report?counter}">
-	                                <div class="box">
-	                                    <div class="box-header">
-	                                        <h3>${report.name}</h3>
-	                                        <small>${prettyTime.format(report.startTime)}</small>
-	                                        <small>${report.startTime?datetime}</small>
-	                                    </div>
-	                                    <div class="box-tool">
-	                                        <ul class="nav">
-	                                            <li class="nav-item inline">
-	                                                <a class="nav-link" alt="View all tests" title="View all tests" href="/build?id=${report.id}">
-	                                                <button class="btn btn-icon white"><i class="material-icons">input</i></button>
-	                                                </a>
-	                                            </li>
-	                                            <li class="nav-item inline">
-	                                                <a class="nav-link" alt="View failed tests" title="View failed tests" href="/build?id=${report.id}&status=fail">
-	                                                <button class="btn btn-icon white"><i class="material-icons">report</i></button>
-	                                                </a>
-	                                            </li>
-	                                            <!-- if admin -->
-	                                            <#if user?? && user.admin>
-	                                            <li class="nav-item inline">
-	                                                <a class="nav-link" ng-click="remove('${report.id}', 'r${report?counter}')" href="#" alt="Delete report" title="Delete report">
-	                                                <button class="btn btn-icon white"><i class="material-icons">delete</i></button>
-	                                                </a>
-	                                            </li>
-	                                            </#if>
-	                                        </ul>
-	                                    </div>
-	                                    <div class="box-body">
-	                                        <p class="m-a-0">
-                                        		${report.name} executed for ${report.parentLength} 
-                                        		<#if isBDD>
-                                        		features, ${report.childLength} scenarios and ${report.grandChildLength} steps. 
-                                        		<#else>
-                                        		tests.
-                                        		</#if>
-                                        		Out of ${report.parentLength} 
-                                        		<#if isBDD>
-                                        		features,  
-                                        		<#else>
-                                        		tests, 
-                                        		</#if>
-                                        		${report.passParentLength} passed. This build has a success percentage of ${featurePassed}%.
-	                                     	</p>
-	                                        <#if report.parentLength != 0>
-	                                        <div class="mt-70">
-	                                            <div class="peity-chart" data-provide="peity" data-type="bar" data-height="130" data-width="90" data-fill="#33cabb,#48b0f7,#fdd501">${featurePassed},${featureFailed},${featureOthers}</div>
-	                                            <ul class="pull-right list-inline align-self-end text-muted text-right mb-0">
-	                                                <li>${featurePassed}% Pass &nbsp; <span class="badge badge-ring badge-primary ml-2"></span></li>
-	                                                <li>${featureFailed}% Failed &nbsp; <span class="badge badge-ring badge-danger ml-2"></span></li>
-	                                                <li>${featureOthers}% Others &nbsp; <span class="badge badge-ring badge-yellow ml-2"></span></li>
-	                                            </ul>
-	                                        </div>
-	                                        </#if>
-	                                    </div>
-	                                </div>
-	                            </div>
-                            </#if></#list>
-                        </div>
+                    	<div class="row m-b">
+        					<div class="col-sm-2">
+        						<div class="row m-b">
+        							<#list categoryList as category>
+										<a href="/builds?category=${category}" class="_500">${category}</a>
+									</#list>
+								</div>
+        					</div>
+        					<div class="col-sm-10">
+		                        <div class="row m-b">
+		                            <#list reportList as report> <#if (report.name)?? && (report.parentLength)??>
+			                            <#if report.parentLength != 0>
+				                            <#assign featurePassed=Math.round((report.passParentLength/report.parentLength)*100)>
+				                            <#assign featureFailed=Math.round(((report.failParentLength+report.fatalParentLength+report.errorParentLength)/report.parentLength)*100)>
+				                            <#assign featureOthers=Math.round(((report.skipParentLength+report.warningParentLength)/report.parentLength)*100)>
+				                            <#assign featureScore=Math.round((report.passParentLength/report.parentLength)*100)>
+			                            </#if>
+			                            <#if report.childLength != 0> 
+			                            	<#assign scenarioScore=Math.round((report.passChildLength/report.childLength)*100)> 
+			                            </#if>
+			                            <#if report.grandChildLength != 0> 
+			                            	<#assign stepScore=Math.round((report.passGrandChildLength/report.grandChildLength)*100)> 
+			                            </#if>
+			                            
+			                            <div class="col-sm-4" ng-if="!r${report?counter}">
+			                                <div class="box">
+			                                    <div class="box-header">
+			                                        <h3>${report.name}</h3>
+			                                        <small>${prettyTime.format(report.startTime)}</small>
+			                                        <small>${report.startTime?datetime}</small>
+			                                    </div>
+			                                    <div class="box-tool">
+			                                        <ul class="nav">
+			                                            <li class="nav-item inline">
+			                                                <a class="nav-link" alt="View all tests" title="View all tests" href="/build?id=${report.id}">
+			                                                <button class="btn btn-icon white"><i class="material-icons">input</i></button>
+			                                                </a>
+			                                            </li>
+			                                            <li class="nav-item inline">
+			                                                <a class="nav-link" alt="View failed tests" title="View failed tests" href="/build?id=${report.id}&status=fail">
+			                                                <button class="btn btn-icon white"><i class="material-icons">report</i></button>
+			                                                </a>
+			                                            </li>
+			                                            <!-- if admin -->
+			                                            <#if user?? && user.admin>
+			                                            <li class="nav-item inline">
+			                                                <a class="nav-link" ng-click="remove('${report.id}', 'r${report?counter}')" href="#" alt="Delete report" title="Delete report">
+			                                                <button class="btn btn-icon white"><i class="material-icons">delete</i></button>
+			                                                </a>
+			                                            </li>
+			                                            </#if>
+			                                        </ul>
+			                                    </div>
+			                                    <div class="box-body">
+			                                        <p class="m-a-0">
+		                                        		${report.name} executed for ${report.parentLength} 
+		                                        		<#if isBDD>
+		                                        		features, ${report.childLength} scenarios and ${report.grandChildLength} steps. 
+		                                        		<#else>
+		                                        		tests.
+		                                        		</#if>
+		                                        		Out of ${report.parentLength} 
+		                                        		<#if isBDD>
+		                                        		features,  
+		                                        		<#else>
+		                                        		tests, 
+		                                        		</#if>
+		                                        		${report.passParentLength} passed. This build has a success percentage of ${featurePassed}%.
+			                                     	</p>
+			                                        <#if report.parentLength != 0>
+			                                        <div class="mt-70">
+			                                            <div class="peity-chart" data-provide="peity" data-type="bar" data-height="130" data-width="90" data-fill="#33cabb,#48b0f7,#fdd501">${featurePassed},${featureFailed},${featureOthers}</div>
+			                                            <ul class="pull-right list-inline align-self-end text-muted text-right mb-0">
+			                                                <li>${featurePassed}% Pass &nbsp; <span class="badge badge-ring badge-primary ml-2"></span></li>
+			                                                <li>${featureFailed}% Failed &nbsp; <span class="badge badge-ring badge-danger ml-2"></span></li>
+			                                                <li>${featureOthers}% Others &nbsp; <span class="badge badge-ring badge-yellow ml-2"></span></li>
+			                                            </ul>
+			                                        </div>
+			                                        </#if>
+			                                    </div>
+			                                </div>
+			                            </div>
+		                            </#if></#list>
+		                        </div>
+		                	</div>
+		               	</div>
                         <ul class="pagination">
                             <!-- previous, next -->
                             <#assign disabled="">

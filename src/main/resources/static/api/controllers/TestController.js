@@ -16,6 +16,20 @@ angular.module('Klov')
     		return Font.getFont(status);
         };
         
+        $scope.getErrorScreen = function(details){
+        	if(details.length>100){
+        		return $(details)[2].outerHTML;
+        	}
+        	return "";
+        };
+        
+        $scope.getErrorResume = function(details){
+        	if(details.length>100){
+        		return $(details)[0].textContent.split('\n')[0]+"\n"+$(details)[0].textContent.split('\n')[1];
+        	}
+        	return "";
+        };
+        
     	$scope.findTest = function(id, historical, resetView) {
     		if (typeof reserView === "undefined" || reserView === null || resetView === "")
     			reserView = true;
