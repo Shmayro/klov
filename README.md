@@ -1,24 +1,13 @@
-## klov.
+## STKlov.
 
-[![Join the chat at https://gitter.im/anshooarora/klov](https://badges.gitter.im/anshooarora/klov.svg)](https://gitter.im/anshooarora/klov?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ee786f7b7f7f4947b4953398428efa18)](https://www.codacy.com/app/anshooarora/klov?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=anshooarora/klov&amp;utm_campaign=Badge_Grade)
-
-#### Demo:  [klov.herokuapp.com](http://klov.herokuapp.com)
-
-Reporting server for Extent API. * klov replaces ExtentX.
-
-### Download
-
-Download latest copy from [extentreports.com](http://extentreports.com/community/)
-
-
-### Klov Installation
+### STKlov Installation
 
 1. Install MongoDB 3.2 (other versions may not work correctly) (skip if you have this already)
 2. Install Redis-Server (skip if you do not plan to use Redis, see section "Using Klov Without Redis")
 3. Run Klov:
 
 ```java
-java -jar klov-0.0.3.jar
+java -jar STKlov.jar
 ```
 
 #### MongoDB Settings
@@ -29,7 +18,7 @@ You can configure your MongoDB environment settings from `application.properties
 # data.mongodb
 spring.data.mongodb.host=localhost
 spring.data.mongodb.port=27017
-spring.data.mongodb.database=klov
+spring.data.mongodb.database=st-klov
 ```
 
 #### Redis settings
