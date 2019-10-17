@@ -16,6 +16,7 @@ import org.bson.types.ObjectId;
 import org.ocpsoft.prettytime.PrettyTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.aventstack.klov.domain.Category;
+import com.aventstack.klov.domain.Environment;
 import com.aventstack.klov.domain.Feature;
 import com.aventstack.klov.domain.Project;
 import com.aventstack.klov.domain.Report;
@@ -30,6 +32,7 @@ import com.aventstack.klov.domain.Status;
 import com.aventstack.klov.domain.Test;
 import com.aventstack.klov.domain.VersionComparator;
 import com.aventstack.klov.repository.CategoryRepository;
+import com.aventstack.klov.repository.EnvironmentRepository;
 import com.aventstack.klov.repository.ProjectRepository;
 import com.aventstack.klov.repository.ReportRepository;
 import com.aventstack.klov.repository.TestRepository;
@@ -48,6 +51,7 @@ public class ReportViewController {
 
 	@Autowired
 	private ReportRepository<Report, String> reportRepo;
+
 	@Autowired
 	private CategoryRepository<Report, String> categoryRepo;
 
@@ -121,31 +125,35 @@ public class ReportViewController {
 		model.put("categoryList", categoryList);
 		model.put("nameList", Feature.values());
 
-		Page<Test> tests=null;
-		
-		if(category.isPresent() && name.isPresent()) {
-			tests=testRepo.findByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(category.get(), Integer.valueOf(0), name.get(), pageable);
-		}else if(category.isPresent()) {
-			tests=testRepo.findByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(category.get(), Integer.valueOf(0), "", pageable);
-		}else {
-			tests=testRepo.findByLevelOrderByEndTimeDesc(Integer.valueOf(0), pageable);
+		Page<Test> tests = null;
+
+		if (category.isPresent() && name.isPresent()) {
+			tests = testRepo.findByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(category.get(),
+					Integer.valueOf(0), name.get(), pageable);
+		} else if (category.isPresent()) {
+			tests = testRepo.findByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(category.get(),
+					Integer.valueOf(0), "", pageable);
+		} else if (name.isPresent()) {
+			tests = testRepo.findByLevelAndNameContainingOrderByEndTimeDesc(Integer.valueOf(0), name.get(), pageable);
+		} else {
+			tests = testRepo.findByLevelOrderByEndTimeDesc(Integer.valueOf(0), pageable);
 		}
-		int pages = (int) Math
-				.ceil(testRepo.countByLevelByCategoryByName(Optional.of(0), category, name)
-						/ (double) (pageable.getPageSize()));
+		int pages = (int) Math.ceil(testRepo.countByLevelByCategoryByName(Optional.of(0), category, name)
+				/ (double) (pageable.getPageSize()));
 		model.put("pages", pages);
 
 		List<Test> testList = tests.getContent();
-		
-		Map<String,Report> reportMap=new HashMap<>();
-		
-		testList.forEach(test->{
+
+		Map<String, Report> reportMap = new HashMap<>();
+
+		testList.parallelStream().forEach(test -> {
 			reportMap.put(test.getReport(), reportRepo.findById(test.getReport()));
+			Environment env = new Environment();
 		});
-		
+
 		model.put("testList", testList);
 		model.put("reportMap", reportMap);
-		
+
 		model.put("isBDD", false);
 
 		model.put("page", tests.getNumber());
@@ -158,7 +166,7 @@ public class ReportViewController {
 
 	@GetMapping("/lastReports")
 	public String lastReports(Map<String, Object> model, Pageable pageable, HttpSession session) {
-		
+
 		Optional<Project> project = Optional.ofNullable((Project) session.getAttribute("project"));
 		model.put("project", project);
 
@@ -167,9 +175,6 @@ public class ReportViewController {
 		TemplateHashModel statics = bw.getStaticModels();
 		model.put("statics", statics);
 
-		// To generate my list
-		// List<String> versionsPart = Arrays.asList("3.5", "3.8",
-		// "4.2","4.5","4.8","4.11.6.0","4.13","4.14","4.15");
 		List<String> versions = Collections.synchronizedList(new ArrayList<String>());
 		List<String> emptyVersions = Collections.synchronizedList(new ArrayList<String>());
 		genVersionPart().parallelStream().forEach(v -> {
@@ -182,19 +187,20 @@ public class ReportViewController {
 		});
 		Collections.sort(versions, new VersionComparator());
 
-		Map<String,Report> reportMap=new HashMap<>();
-		
+		Map<String, Report> reportMap = new HashMap<>();
+
 		Map<String, Map<String, Test>> stateByVersionByFeature = new HashMap<String, Map<String, Test>>();
 		versions.parallelStream().forEach(version -> {
 			for (Feature feature : Feature.values()) {
 				stateByVersionByFeature.putIfAbsent(version, new HashMap<String, Test>());
-				
-				Test test = testRepo.findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(version, 0,feature.getQueryName());
-				if(test!=null) {
+
+				Test test = testRepo.findFirstByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(version,
+						0, feature.getQueryName());
+				if (test != null) {
 					reportMap.put(test.getReport(), reportRepo.findById(test.getReport()));
 				}
-				
-				stateByVersionByFeature.get(version).put(feature.getQueryName(),test);
+
+				stateByVersionByFeature.get(version).put(feature.getQueryName(), test);
 			}
 			if (stateByVersionByFeature.get(version).values().parallelStream().allMatch(test -> test == null)) {
 				emptyVersions.add(version);
@@ -205,7 +211,7 @@ public class ReportViewController {
 
 		model.put("versions", versions);
 		model.put("reportMap", reportMap);
-		
+
 		model.put("features", Feature.values());
 		model.put("stateByVersionByFeature", stateByVersionByFeature);
 		// end

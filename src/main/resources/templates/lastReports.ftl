@@ -1,6 +1,7 @@
 <#assign Math=statics['java.lang.Math']>
 <!DOCTYPE html>
 <html lang="en" ng-app="Klov">
+	<#setting time_zone="UTC">
     <#include 'partials/head.ftl'>
     <style type="text/css">
         .mt-70 {

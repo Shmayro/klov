@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="Klov">
 	<#include 'partials/head.ftl'>
+	<#setting time_zone="UTC">
 	<style>
 		.border-box > h6 {
 			margin-bottom: 0px;
@@ -123,7 +124,7 @@
 																	<a href="#" class="_500">${t.startTime?datetime}</a>
 																</div>
 																<div class="pull-right">
-																	<span class="label blue-grey"><i class="fa fa-clock-o"></i> <#if (t.duration)??>${t.duration?number_to_time?iso_utc?time?string["H'h 'mm'm 'ss's+'sss'ms'"]}<#else>0ms</#if></span>
+																	<span class="label blue-grey"><i class="fa fa-clock-o"></i> <#if (t.duration)??>${t.duration?number_to_time?string["HH'h 'mm'm 'ss's+'sss'ms'"]}<#else>0ms</#if></span>
 																</div>
 																<small class="block text-ellipsis">
 																<span class="text-xs">

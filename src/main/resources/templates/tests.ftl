@@ -2,6 +2,7 @@
 <#assign Utils=statics['com.aventstack.klov.utils.Utils']>
 <!DOCTYPE html>
 <html lang="en" ng-app="Klov">
+	<#setting time_zone="UTC">
     <#include 'partials/head.ftl'>
     <style type="text/css">
          .mt-70 {
@@ -116,32 +117,54 @@
 									  	<div class="form-group">
 										    <label for="categories">Version</label>
 										    <select class="form-control" id="categories" onchange="location = this.value;">
-										      <option value="/tests" >All Versions</option>
-										      <#list categoryList as category>
-	        									<#if RequestParameters.category?? && RequestParameters.category == category>
-	        										<option value="/tests?category=${category}" selected>${category}</option>
-	        									<#else>
-	        										<option value="/tests?category=${category}">${category}</option>
-	        									</#if>	
-											  </#list>
+										    	<#if RequestParameters.name??>
+											  	  		<option value="/tests?name=${RequestParameters.name}">All Features</option>
+											      		<#list categoryList as category>
+											      			<#if RequestParameters.category?? && RequestParameters.category == category>
+	        													<option value="/tests?name=${RequestParameters.name}&category=${category}" selected>${category}</option>
+	        												<#else>
+	        													<option value="/tests?name=${RequestParameters.name}&category=${category}">${category}</option>
+	        												</#if>		
+											  			</#list>
+		        								<#else>
+		        									<option value="/tests" >All Versions</option>
+										      		<#list categoryList as category>
+	        											<#if RequestParameters.category?? && RequestParameters.category == category>
+	        												<option value="/tests?category=${category}" selected>${category}</option>
+	        											<#else>
+	        												<option value="/tests?category=${category}">${category}</option>
+	        											</#if>	
+											  		</#list>
+		        								</#if>
+										      
 											</select>
 										</div>
 										
-										  <#if RequestParameters.category??>
 											  <div class="form-group">
 											  	<label for="features">Feature</label>
 											  	<select class="form-control" id="features" onchange="location = this.value;">
-											  	  <option value="/tests?category=${RequestParameters.category}">All Features</option>
-											      <#list nameList as name>
-		        									<#if RequestParameters.name?? && RequestParameters.name == name>
-		        										<option value="/tests?category=${RequestParameters.category}&name=${name}" selected>${name}</option>
+											  		<#if RequestParameters.category??>
+											  	  		<option value="/tests?category=${RequestParameters.category}">All Features</option>
+											      		<#list nameList as name>
+			        										<#if RequestParameters.name?? && RequestParameters.name == name>
+			        											<option value="/tests?category=${RequestParameters.category}&name=${name}" selected>${name}</option>
+			        										<#else>
+			        											<option value="/tests?category=${RequestParameters.category}&name=${name}">${name}</option>
+			        										</#if>
+		        										</#list>
 		        									<#else>
-		        										<option value="/tests?category=${RequestParameters.category}&name=${name}">${name}</option>
+		        										<option value="/tests">All Features</option>
+											      		<#list nameList as name>
+			        										<#if RequestParameters.name?? && RequestParameters.name == name>
+			        											<option value="/tests?name=${name}" selected>${name}</option>
+			        										<#else>
+			        											<option value="/tests?name=${name}">${name}</option>
+			        										</#if>
+		        										</#list>
 		        									</#if>	
-												  </#list>
+												  
 												</select>
 											  </div>
-										  </#if>
 									   
 									  
 									</form>
@@ -167,12 +190,14 @@
 			                                        <h3>${test.name?replace('qaa_SanityCheck_','')}</h3>
 			                                        <small>${prettyTime.format(test.startTime)}</small>
 			                                        <small>${test.startTime?datetime}</small>
+
 			                                        <div>
 			                                        	<#if test.categorized??>
 			                                        		<#list test.categoryNameList as category>
 			                                        			<span class="label blue-grey"><i class="fa fa-tag"></i> &nbsp; ${category}</span>
 															</#list>
 														<#else>
+															<span class="label blue-grey"><i class="fa fa-tag"></i> &nbsp; ${report.name}</span>
 															<span class="label blue-grey"><i class="fa fa-tag"></i> &nbsp; ${report.name}</span>
 				                                        </#if>
 			                                        </div>
