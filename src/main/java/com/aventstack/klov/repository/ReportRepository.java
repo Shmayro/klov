@@ -35,4 +35,6 @@ public interface ReportRepository<T, ID extends Serializable> extends MongoRepos
     
     Report findFirstByNameStartingWithOrderByEndTimeDesc(@Param("categoryName") String version); //
 
+    Report findFirstByNameOrderByEndTimeDesc(@Param("categoryName") String version); //
+
 }

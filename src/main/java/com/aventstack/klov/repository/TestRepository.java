@@ -59,6 +59,8 @@ public interface TestRepository<T, ID extends Serializable> extends MongoReposit
     
     Page<Test> findByCategoryNameListInAndLevelAndNameContainingOrderByEndTimeDesc(@Param("categoryName") String categoryName, @Param("level") Integer level,@Param("name") String feature, Pageable pageable); //
     
+    Page<Test> findByLevelAndNameContainingOrderByEndTimeDesc(@Param("level") Integer level,@Param("name") String feature, Pageable pageable); //
+    
     List<Test> findByProject(@Param("project") ObjectId project);
     
     List<Test> findByStartTimeGreaterThan(@Param("date") Date date);

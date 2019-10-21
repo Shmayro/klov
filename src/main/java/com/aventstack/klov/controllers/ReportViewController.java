@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpSession;
@@ -165,7 +167,7 @@ public class ReportViewController {
 	}
 
 	@GetMapping("/lastReports")
-	public String lastReports(Map<String, Object> model, Pageable pageable, HttpSession session) {
+	public String lastReports(Map<String, Object> model, Pageable pageable, @RequestParam("dv") Optional<List<String>> displayedVersions, HttpSession session) {
 
 		Optional<Project> project = Optional.ofNullable((Project) session.getAttribute("project"));
 		model.put("project", project);
@@ -175,10 +177,32 @@ public class ReportViewController {
 		TemplateHashModel statics = bw.getStaticModels();
 		model.put("statics", statics);
 
+		if(displayedVersions.isPresent()) {
+			Map<String,String> tempDvs=new HashMap<>();
+			displayedVersions.get().forEach(dv->tempDvs.put(dv.split("\\.")[0] + "." + dv.split("\\.")[1]+".",dv));
+			displayedVersions.get().clear();
+			displayedVersions.get().addAll(tempDvs.values());
+			StringBuilder dvs=new StringBuilder();
+			displayedVersions.get().stream().forEach(dv -> dvs.append("dv=" + dv + "&"));
+			model.put("dvs", dvs.toString());
+		}
+
 		List<String> versions = Collections.synchronizedList(new ArrayList<String>());
 		List<String> emptyVersions = Collections.synchronizedList(new ArrayList<String>());
 		genVersionPart().parallelStream().forEach(v -> {
-			Report report = reportRepo.findFirstByNameStartingWithOrderByEndTimeDesc(v);
+			Report report=null;
+			if(displayedVersions.isPresent()){
+				Optional<String> versionToShow = displayedVersions.get().parallelStream().filter(displayedVersion -> displayedVersion.startsWith(v)).findFirst();
+				if(versionToShow.isPresent()){
+					report=reportRepo.findFirstByNameOrderByEndTimeDesc(versionToShow.get());
+				}
+				if(report==null){
+					report=reportRepo.findFirstByNameStartingWithOrderByEndTimeDesc(v);
+				}
+			}else {
+				report=reportRepo.findFirstByNameStartingWithOrderByEndTimeDesc(v);
+			}
+
 			if (report != null) {
 				synchronized (versions) {
 					versions.add(report.getName());
@@ -203,11 +227,22 @@ public class ReportViewController {
 				stateByVersionByFeature.get(version).put(feature.getQueryName(), test);
 			}
 			if (stateByVersionByFeature.get(version).values().parallelStream().allMatch(test -> test == null)) {
-				emptyVersions.add(version);
+				if(!(displayedVersions.isPresent() && displayedVersions.get().contains(version))){
+					emptyVersions.add(version);
+				}
 			}
 		});
 
 		versions.removeAll(emptyVersions);
+
+		List<String> categoryList = Collections.synchronizedList(categoryRepo.findAll().parallelStream().map(Category::getName).distinct()
+				.sorted(new VersionComparator()).collect(Collectors.toList()));
+		Map<String,List<String>> similarVersionsMap = new ConcurrentHashMap<>();
+		versions.parallelStream().forEach(v->{
+			similarVersionsMap.put(v,categoryList.parallelStream().filter(sv->sv.startsWith(v.split("\\.")[0] + "." + v.split("\\.")[1]+".")).sorted(new VersionComparator()).collect(Collectors.toList()));
+		});
+
+		model.put("similarVersionsMap", similarVersionsMap);
 
 		model.put("versions", versions);
 		model.put("reportMap", reportMap);
@@ -291,7 +326,7 @@ public class ReportViewController {
 			String name = cat.getName();
 			if (name.split("\\.").length >= 4) {
 				synchronized (versions) {
-					versions.add(name.split("\\.")[0] + "." + name.split("\\.")[1]);
+					versions.add(name.split("\\.")[0] + "." + name.split("\\.")[1]+".");
 				}
 			}
 		});
